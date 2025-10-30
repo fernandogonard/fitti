@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .bg-gray-900 {
+    background-color: #121212;
+  }
+
+  .text-gray-400 {
+    color: #9ca3af; /* Color predeterminado de TailwindCSS */
+  }
+
+  .bg-gray-800 {
+    background-color: #1f2937; /* Color predeterminado de TailwindCSS */
+  }
+
+  .hover\:bg-gray-700:hover {
+    background-color: #374151; /* Color predeterminado de TailwindCSS */
+  }
+}
+
+body {
+  @apply bg-black text-lightGray font-sans;
+  line-height: 1.6;
+}
+
+a {
+  @apply text-orange hover:text-gold transition-colors;
+}
+
+button {
+  @apply bg-orange text-black font-bold py-2 px-4 rounded hover:bg-gold transition-colors;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-display text-white;
+}
+
+h1 {
+  @apply text-5xl md:text-6xl;
+}
+
+h2 {
+  @apply text-4xl md:text-5xl;
+}
+
+h3 {
+  @apply text-3xl md:text-4xl;
+}
+
+.card {
+  @apply bg-gray-900 text-white rounded-xl shadow-lg p-4;
+  background-size: cover;
+  background-position: center;
+}
+
+.card img {
+  display: none;
+}
+
+.card h3 {
+  @apply text-xl font-bold;
+}
+
+.card p {
+  @apply text-sm text-gray-400;
+}
+
+.card button {
+  @apply bg-orange text-black font-bold py-2 px-4 rounded hover:bg-gold transition-colors;
+}
+
+.catalog-header {
+  @apply text-center text-white font-display text-5xl mb-6;
+}
+
+.catalog-buttons {
+  @apply flex gap-4 mb-8;
+}
+
+.catalog-buttons button {
+  @apply font-bold py-2 px-6 rounded transition-colors;
+}
+
+.catalog-buttons .filter {
+  @apply bg-orange text-black hover:bg-gold;
+}
+
+details > div {
+  color: #1a1a1a; /* Gris muy oscuro para mejor legibilidad */
+}
