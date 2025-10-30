@@ -16,4 +16,9 @@ export default defineConfig({
       plugins: [tailwindcss(), autoprefixer()],
     },
   },
+  build: {
+    rollupOptions: {
+      external: ["react-icons"],
+    },
+  },
 });
