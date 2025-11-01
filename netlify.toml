@@ -1,0 +1,132 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Compression
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Content-Encoding = "gzip"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Content-Encoding = "gzip"
+
+# Security Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googletagmanager.com *.google-analytics.com *.hotjar.com *.facebook.net;
+      style-src 'self' 'unsafe-inline' fonts.googleapis.com;
+      img-src 'self' data: *.googletagmanager.com *.google-analytics.com *.hotjar.com;
+      font-src 'self' fonts.gstatic.com;
+      connect-src 'self' *.google-analytics.com *.hotjar.com *.facebook.com;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+# Performance optimizations
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
+# Environment variables for different stages
+[context.production.environment]
+  NODE_ENV = "production"
+  VITE_APP_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "staging"
+  VITE_APP_ENV = "staging"
+
+[context.branch-deploy.environment]
+  NODE_ENV = "development"
+  VITE_APP_ENV = "development"
+
+# Form handling
+[build]
+  functions = "netlify/functions"
+
+# Edge functions for enhanced performance
+[[edge_functions]]
+  function = "redirect-to-https"
+  path = "/*"
+
+# Plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+  [plugins.inputs.audits]
+    output_path = "reports/lighthouse.html"
+    
+[[plugins]]
+  package = "netlify-plugin-submit-sitemap"
+
+  [plugins.inputs]
+    baseUrl = "https://fittipald1-gloves.com"
+    sitemapPath = "/sitemap.xml"
+    ignorePeriod = 0
+    providers = [
+      "google",
+      "bing"
+    ]

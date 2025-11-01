@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="flex items-center gap-2 mb-4">
             <img
               src={logoImage}
-              alt="Fittipaldi Logo"
+              alt="fittipald1 Logo"
               className="w-full h-auto"
               style={{ maxHeight: "100px" }}
             />
@@ -92,7 +92,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="mt-10 text-center text-gray-300 text-base border-t border-gray-800 pt-6">
-        Fittipaldi Gloves © 2025 — Todos los derechos reservados
+        fittipald1 Gloves © 2025 — Todos los derechos reservados
       </div>
     </footer>
   );

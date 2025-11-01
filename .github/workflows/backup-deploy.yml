@@ -1,0 +1,336 @@
+name: 🔄 Backup & Deployment Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Daily backup at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      deployment_type:
+        description: 'Type of deployment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - rollback
+      rollback_version:
+        description: 'Version to rollback to (if rollback selected)'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '18'
+  NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+  NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+jobs:
+  # Backup job
+  backup:
+    runs-on: ubuntu-latest
+    if: github.event.schedule || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🗄️ Create backup
+        run: |
+          # Create backup directory
+          mkdir -p backups
+          
+          # Create timestamped backup
+          BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+          
+          # Backup source code
+          tar -czf "backups/${BACKUP_NAME}-source.tar.gz" \
+            --exclude=node_modules \
+            --exclude=dist \
+            --exclude=.git \
+            --exclude=backups \
+            .
+          
+          # Backup build artifacts (if exists)
+          if [ -d "dist" ]; then
+            tar -czf "backups/${BACKUP_NAME}-build.tar.gz" dist/
+          fi
+          
+          # Create manifest
+          cat > "backups/${BACKUP_NAME}-manifest.json" << EOF
+          {
+            "backup_name": "${BACKUP_NAME}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit_hash": "$(git rev-parse HEAD)",
+            "commit_message": "$(git log -1 --pretty=%B)",
+            "branch": "$(git branch --show-current)",
+            "node_version": "${NODE_VERSION}",
+            "package_version": "$(node -p "require('./package.json').version")"
+          }
+          EOF
+          
+          echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_ENV
+
+      - name: ☁️ Upload backup to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: backup-${{ env.BACKUP_NAME }}
+          path: backups/
+          retention-days: 30
+
+      - name: 📤 Upload to external storage
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Upload to S3, Google Cloud, or other backup service
+          # Example with AWS CLI (requires AWS credentials in secrets)
+          # aws s3 cp backups/ s3://fittipald1-backups/ --recursive
+          echo "Backup created: ${{ env.BACKUP_NAME }}"
+
+  # Build and test
+  build-and-test:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    outputs:
+      build-version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📋 Generate build version
+        id: version
+        run: |
+          VERSION="v$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: 🔧 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests
+        run: |
+          npm run test:unit
+          npm run test:e2e:ci
+          npm run lint
+          npm run type-check
+
+      - name: 🏗️ Build application
+        run: |
+          npm run build
+          echo "${BUILD_VERSION}" > dist/version.txt
+
+      - name: 📊 Performance audit
+        run: |
+          npx lighthouse-ci autorun --config=./lighthouserc.json
+
+      - name: 📦 Create deployment package
+        run: |
+          mkdir -p deployment
+          cp -r dist/* deployment/
+          
+          # Create deployment manifest
+          cat > deployment/deployment-manifest.json << EOF
+          {
+            "version": "${BUILD_VERSION}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "$(git rev-parse HEAD)",
+            "branch": "$(git branch --show-current || echo 'detached')",
+            "build_number": "${{ github.run_number }}",
+            "deployment_type": "${{ github.event.inputs.deployment_type || 'auto' }}"
+          }
+          EOF
+
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ env.BUILD_VERSION }}
+          path: deployment/
+          retention-days: 7
+
+  # Staging deployment
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.deployment_type == 'staging'
+    environment: staging
+    steps:
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ needs.build-and-test.outputs.build-version }}
+          path: deployment/
+
+      - name: 🚀 Deploy to Netlify staging
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=deployment --alias=staging-${{ needs.build-and-test.outputs.build-version }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+
+      - name: 🧪 Smoke tests on staging
+        run: |
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Run smoke tests
+          STAGING_URL="https://staging-${{ needs.build-and-test.outputs.build-version }}--fittipald1-gloves.netlify.app"
+          
+          # Check if site is accessible
+          curl -f $STAGING_URL || exit 1
+          
+          # Check critical pages
+          curl -f $STAGING_URL/catalog || exit 1
+          curl -f $STAGING_URL/technology || exit 1
+
+      - name: 📢 Notify staging deployment
+        if: always()
+        run: |
+          echo "Staging deployment completed: ${{ needs.build-and-test.outputs.build-version }}"
+          # Send notification to Slack, Discord, etc.
+
+  # Production deployment
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-and-test, deploy-staging]
+    if: github.ref == 'refs/heads/main' && github.event.inputs.deployment_type != 'rollback'
+    environment: production
+    steps:
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ needs.build-and-test.outputs.build-version }}
+          path: deployment/
+
+      - name: 🔍 Pre-deployment checks
+        run: |
+          # Verify build integrity
+          if [ ! -f deployment/index.html ]; then
+            echo "❌ Build verification failed: index.html not found"
+            exit 1
+          fi
+          
+          if [ ! -f deployment/deployment-manifest.json ]; then
+            echo "❌ Build verification failed: deployment manifest not found"
+            exit 1
+          fi
+          
+          echo "✅ Build verification passed"
+
+      - name: 📸 Create pre-deployment snapshot
+        run: |
+          # Get current production deployment info
+          CURRENT_DEPLOY=$(curl -s -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
+            "https://api.netlify.com/api/v1/sites/${{ secrets.NETLIFY_SITE_ID }}/deploys?state=ready&per_page=1" | \
+            jq -r '.[0].id // empty')
+          
+          if [ -n "$CURRENT_DEPLOY" ]; then
+            echo "ROLLBACK_DEPLOY_ID=${CURRENT_DEPLOY}" >> $GITHUB_ENV
+            echo "📸 Rollback point saved: ${CURRENT_DEPLOY}"
+          fi
+
+      - name: 🚀 Deploy to production
+        uses: netlify/actions/cli@master
+        id: production-deploy
+        with:
+          args: deploy --prod --dir=deployment --message="Production deployment ${{ needs.build-and-test.outputs.build-version }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: 🧪 Production health check
+        run: |
+          # Wait for deployment propagation
+          sleep 60
+          
+          PROD_URL="https://fittipald1-gloves.com"
+          
+          # Health check with retries
+          for i in {1..5}; do
+            if curl -f --max-time 10 $PROD_URL; then
+              echo "✅ Health check passed (attempt $i)"
+              break
+            else
+              echo "❌ Health check failed (attempt $i)"
+              if [ $i -eq 5 ]; then
+                echo "🚨 Production deployment failed health check!"
+                exit 1
+              fi
+              sleep 30
+            fi
+          done
+
+      - name: 📊 Post-deployment monitoring
+        run: |
+          # Trigger monitoring alerts
+          echo "🔍 Monitoring production deployment..."
+          
+          # Check Core Web Vitals (if monitoring service available)
+          # Check error rates
+          # Verify critical user flows
+
+      - name: 📢 Notify successful deployment
+        if: success()
+        run: |
+          echo "🎉 Production deployment successful: ${{ needs.build-and-test.outputs.build-version }}"
+          # Send success notification
+
+      - name: 🚨 Rollback on failure
+        if: failure() && env.ROLLBACK_DEPLOY_ID
+        run: |
+          echo "🔄 Rolling back to: ${{ env.ROLLBACK_DEPLOY_ID }}"
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            "https://api.netlify.com/api/v1/sites/${{ secrets.NETLIFY_SITE_ID }}/deploys/${{ env.ROLLBACK_DEPLOY_ID }}/restore"
+
+  # Manual rollback
+  rollback:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deployment_type == 'rollback'
+    environment: production
+    steps:
+      - name: 🔄 Execute rollback
+        run: |
+          if [ -z "${{ github.event.inputs.rollback_version }}" ]; then
+            echo "❌ Rollback version not specified"
+            exit 1
+          fi
+          
+          echo "🔄 Rolling back to version: ${{ github.event.inputs.rollback_version }}"
+          
+          # Find deployment by version or use deploy ID directly
+          ROLLBACK_ID="${{ github.event.inputs.rollback_version }}"
+          
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            "https://api.netlify.com/api/v1/sites/${{ secrets.NETLIFY_SITE_ID }}/deploys/${ROLLBACK_ID}/restore"
+
+      - name: 🧪 Verify rollback
+        run: |
+          sleep 30
+          
+          PROD_URL="https://fittipald1-gloves.com"
+          
+          if curl -f $PROD_URL; then
+            echo "✅ Rollback verification successful"
+          else
+            echo "❌ Rollback verification failed"
+            exit 1
+          fi
+
+      - name: 📢 Notify rollback completion
+        if: always()
+        run: |
+          echo "🔄 Rollback completed to version: ${{ github.event.inputs.rollback_version }}"

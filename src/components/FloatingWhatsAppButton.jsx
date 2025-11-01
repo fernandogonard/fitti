@@ -2,7 +2,7 @@ import React from "react";
 import { FaWhatsapp } from "react-icons/fa";
 
 export default function FloatingWhatsAppButton() {
-  const whatsappLink = "https://wa.me/2233028281?text=Hola%2C%20estoy%20interesado%20en%20los%20guantes%20Fittipaldi.";
+  const whatsappLink = "https://wa.me/2233028281?text=Hola%2C%20estoy%20interesado%20en%20los%20guantes%20fittipald1.";
 
   return (
     <a

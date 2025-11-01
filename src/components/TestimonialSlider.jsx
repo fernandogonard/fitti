@@ -9,7 +9,7 @@ const testimonials = [
 	{
 		name: "Carlos G.",
 		video: "../../assets/nabarro-montolla.mp4",
-		quote: "Nunca sentí tanta seguridad y control. Fittipaldi es mi elección desde hace años.",
+		quote: "Nunca sentí tanta seguridad y control. FITTIPALD1 es mi elección desde hace años.",
 	},
 	{
 		name: "Roberto S.",
@@ -20,26 +20,33 @@ const testimonials = [
 
 export default function TestimonialSlider() {
 	return (
-		<section className="max-w-4xl mx-auto px-4 py-12 text-center">
-			<h3 className="text-2xl font-display font-bold mb-8">
-				Lo que dicen los históricos
+		<section className="testimonial-section max-w-4xl mx-auto px-4 py-12 text-center">
+			<h3 className="testimonial-title text-2xl font-display font-bold mb-8">
+				TESTIMONIOS
 			</h3>
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+			<p className="testimonial-subtitle mb-8">
+				Lo que dicen los históricos
+			</p>
+			<div className="testimonial-cards grid grid-cols-1 md:grid-cols-3 gap-8">
 				{testimonials.map((t, i) => (
 					<div
 						key={i}
-						className="bg-gray-900 rounded-xl p-4 shadow-lg flex flex-col items-center"
+						className="testimonial-card bg-gray-900 rounded-xl p-4 shadow-lg flex flex-col items-center"
 					>
-						<div className="w-full aspect-video mb-4 rounded overflow-hidden">
+						<div className="testimonial-video-wrapper mb-4">
 							<video
 								src={t.video}
 								title={`Testimonio de ${t.name}`}
 								controls
-								className="w-full h-full rounded"
+								className="testimonial-video w-full h-full rounded"
 							/>
 						</div>
-						<p className="text-gray-200 italic mb-2">“{t.quote}”</p>
-						<span className="font-bold text-orange">{t.name}</span>
+						<p className="testimonial-text text-gray-200 italic mb-2">
+							“{t.quote}”
+						</p>
+						<span className="testimonial-name font-bold text-orange">
+							{t.name}
+						</span>
 					</div>
 				))}
 			</div>

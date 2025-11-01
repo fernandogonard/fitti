@@ -1,5 +1,5 @@
 {
-  "name": "fittipaldi-gloves",
+  "name": "fittipald1-gloves",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,11 +9,13 @@
     "test": "vitest"
   },
   "dependencies": {
+    "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^4.10.1",
     "react-router-dom": "^6.21.1",
     "sharp": "^0.34.4",
-    "react-icons": "^4.10.1"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@iconify/react": "^4.1.0",

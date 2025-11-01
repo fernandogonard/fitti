@@ -16,7 +16,7 @@ export default function Navbar() {
       style={{ backgroundColor: "#000000" }}
     >
       <div className="flex items-center gap-2">
-        <img src={logoImage} alt="Fittipaldi Logo" className="h-14" />
+        <img src={logoImage} alt="fittipald1 Logo" className="h-14" />
       </div>
       <button
         className="md:hidden text-white text-2xl focus:outline-none"

@@ -56,28 +56,28 @@ export default function Accessories() {
             description="Entrena tus reflejos con este equipo especializado."
           />
           <ProductCard
-            name="Bolso Fittipaldi"
+            name="Bolso fittipald1"
             image={bag}
             price={50}
-            description="Bolso deportivo Fittipaldi, ideal para llevar tus accesorios y equipo."
+            description="Bolso deportivo fittipald1, ideal para llevar tus accesorios y equipo."
           />
           <ProductCard
-            name="Ropa térmica Fittipaldi"
+            name="Ropa térmica fittipald1"
             image={thermalWear}
             price={80}
             description="Ropa térmica de alta calidad para entrenamientos en climas fríos."
           />
           <ProductCard
-            name="Rodilleras Fittipaldi"
+            name="Rodilleras fittipald1"
             image={kneePads}
             price={40}
             description="Rodilleras ergonómicas para máxima protección y comodidad."
           />
           <ProductCard
-            name="Toalla Fittipaldi"
+            name="Toalla fittipald1"
             image={towel}
             price={20}
-            description="Toalla deportiva con diseño exclusivo Fittipaldi."
+            description="Toalla deportiva con diseño exclusivo fittipald1."
           />
         </div>
       </main>

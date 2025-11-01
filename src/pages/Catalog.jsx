@@ -1,13 +1,6 @@
 import React from "react";
 import BackgroundWrapper from "../components/BackgroundWrapper";
 import ProductCard from '../components/ProductCard';
-import gloveElite from '../../assets/glove-elite-pro.png';
-import gloveClassic from '../../assets/glove-classic.png';
-import gloveJunior from '../../assets/glove-junior.png';
-import blackEdition from "../../assets/collections/black-edition.png";
-import winter2025 from '../../assets/collections/winter-2025.png';
-import eliteSeries from '../../assets/collections/elite-series.png';
-import poseidonEdition from "../../assets/gloves/poseidon-edition.png";
 
 export default function Catalog() {
   return (
@@ -22,7 +15,7 @@ export default function Catalog() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 justify-items-center">
           <ProductCard
             name="ProGrip Elite 2025"
-            image={gloveElite}
+            image="/assets/glove-elite-pro.png"
             price={89.99}
             description="Protege-Aqua"
             tag="Nuevo"
@@ -30,32 +23,32 @@ export default function Catalog() {
           />
           <ProductCard
             name="AeroGlove Pro"
-            image={gloveClassic}
+            image="/assets/glove-classic.png"
             price={79.99}
             description="Negativo - Aqua-Green"
             rating={4.2}
           />
           <ProductCard
             name="GripMaster Hybrid"
-            image={gloveJunior}
+            image="/assets/glove-junior.png"
             price={69.99}
             description="Hybrid - Black"
           />
           <ProductCard
             name="ProGrip Elite Proxima"
-            image={blackEdition}
+            image="/assets/collections/black-edition.png"
             price={89.99}
             description="Hybrid - Aqua"
           />
           <ProductCard
             name="AeroGlove Classic"
-            image={winter2025}
+            image="/assets/collections/winter-2025.png"
             price={59.99}
             description="Negativo - Aqua"
           />
           <ProductCard
             name="GripMaster 3.0"
-            image={eliteSeries}
+            image="/assets/collections/elite-series.png"
             price={79.99}
             description="Negativo - Black"
           />

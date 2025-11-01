@@ -22,7 +22,7 @@ export default function About() {
             </div>
           </div>
           <div className="flex flex-col items-center mt-8 w-full">
-            <img src={logo} alt="Banner Fittipaldi" className="mb-4 rounded-xl shadow-lg" style={{ width: '70%' }} />
+            <img src={logo} alt="Banner fittipald1" className="mb-4 rounded-xl shadow-lg" style={{ width: '70%' }} />
             <span className="text-orange font-bold text-lg text-center">De portero a innovador - Guantes de arquero hechos con experiencia</span>
           </div>
         </section>
@@ -35,7 +35,7 @@ export default function About() {
         {/* Fotos del Equipo */}
         <section className="max-w-4xl w-full text-center">
           <h2 className="font-display text-3xl font-bold text-orange mb-6">Conoce a Nuestro Equipo</h2>
-          <img src={teamPhoto} alt="Equipo Fittipaldi" className="rounded-xl shadow-lg mb-4" style={{ width: '80%' }} />
+          <img src={teamPhoto} alt="Equipo fittipald1" className="rounded-xl shadow-lg mb-4" style={{ width: '80%' }} />
           <p className="text-gray-200 text-lg">Un equipo apasionado y dedicado a llevar la mejor experiencia a los arqueros de todo el mundo.</p>
         </section>
         {/* Patrocinios / Colaboraciones */}

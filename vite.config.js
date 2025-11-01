@@ -18,7 +18,21 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ["react-icons"],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          icons: ['react-icons']
+        }
+      }
     },
+    sourcemap: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
   },
 });

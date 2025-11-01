@@ -2,7 +2,7 @@
 
 Frase de marca:
 
-“Fittipaldi Gloves: precisión, confianza y fuerza en tus manos.”
+“fittipald1 Gloves: precisión, confianza y fuerza en tus manos.”
 
 Objetivo principal del sitio:
 
